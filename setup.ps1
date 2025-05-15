@@ -22,7 +22,7 @@ Set-Location ai-102-lab
 code . -g steps.dib
 '@ | Out-File -FilePath $env:USERPROFILE\user.ps1 -Encoding UTF8 -Force
 
-# run user.ps1 as Student
+# run user.ps1 as normal user
 $psi = New-Object System.Diagnostics.ProcessStartInfo
 $psi.FileName = "powershell.exe"
 $psi.Arguments = "-File `"$env:USERPROFILE\user.ps1`""
