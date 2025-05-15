@@ -12,4 +12,73 @@ Write-Host "hello from PowerShell"
 
 #!pwsh
 
-az --version
+#!set --name username --value @input:"Azure portal用のユーザー名を入力してください"
+
+#!pwsh
+
+#!set --name password --value @input:"Azure portal用のパスワードを入力してください"
+
+#!pwsh
+
+az login -u "$username" -p "$password"
+
+#!pwsh
+
+$group = az group list --query "[].name" -o tsv
+$group
+
+#!pwsh
+
+$num = "ai" + (Get-Random -Minimum 10000000 -Maximum 99999999)
+$num
+
+#!pwsh
+
+$oainame = "oai" + $num
+$storagename = "stor" + $num
+$aisearchname = "aisearch" + $num
+$location = "eastus"
+
+#!pwsh
+
+az cognitiveservices account create `
+  -n $oainame -g $group -l $location --kind "OpenAI" --sku "S0"
+
+#!pwsh
+
+az cognitiveservices account deployment create `
+    -g $group `
+    -n $oainame `
+    --deployment-name gpt-4o `
+    --model-name gpt-4o `
+    --model-version 2024-05-13 `
+    --model-format OpenAI `
+    --sku-name "Standard" `
+    --sku-capacity 5
+
+#!pwsh
+
+az storage account create -n $storagename -g $group -l $location `
+  --sku Standard_LRS --kind StorageV2
+
+#!pwsh
+
+az storage account create -n $storagename -g $group -l $location `  --sku Standard_LRS --kind StorageV2
+
+#!pwsh
+
+$stkey = (az storage account keys list --account-name $storagename -g $group `
+    --query "[?keyName=='key1'].value | [0]" -o tsv)
+
+#!pwsh
+
+az storage container create --name brochures --account-name $storagename --auth-mode key --account-key $stkey
+
+#!pwsh
+
+az storage blob sync --account-name $storagename --account-key $stkey `
+  --source brochures --container brochures
+
+#!pwsh
+
+az search service create -n $aisearchname -g $group -l $location --sku free

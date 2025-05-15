@@ -10,12 +10,14 @@ Write-Host "install .NET SDK 9 ..."
 winget install -e -h --accept-package-agreements --accept-source-agreements --no-upgrade --id Microsoft.DotNet.SDK.9
 Write-Host "install .NET SDK 9 ... done"
 
+Write-Host "install dotnet-interactive ..."
+dotnet tool install -g Microsoft.dotnet-interactive
+Write-Host "install dotnet-interactive ...done"
+
 # create user.ps1
 Write-Output @'
 #code --install-extension ms-dotnettools.csharp --force
 #code --install-extension ms-dotnettools.csdevkit --force
-
-dotnet tool install -g Microsoft.dotnet-interactive
 
 code --install-extension ms-dotnettools.dotnet-interactive-vscode --force
 
