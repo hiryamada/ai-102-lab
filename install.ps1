@@ -6,8 +6,8 @@ winget install -e -h --accept-package-agreements --accept-source-agreements --no
 winget install -e -h --accept-package-agreements --accept-source-agreements --no-upgrade --id Microsoft.DotNet.SDK.9
 #winget install -e -h --accept-package-agreements --accept-source-agreements --no-upgrade --id Microsoft.PowerShell
 #winget install -e -h --accept-package-agreements --accept-source-agreements --no-upgrade --id Microsoft.AzureCLI
-code --install-extension --force ms-dotnettools.csharp
-code --install-extension --force ms-dotnettools.csdevkit
-code --install-extension --force ms-dotnettools.dotnet-interactive-vscode
+code --install-extension ms-dotnettools.csharp --force
+code --install-extension ms-dotnettools.csdevkit --force
+code --install-extension ms-dotnettools.dotnet-interactive-vscode --force
 git clone https://github.com/hiryamada/ai-102-lab
 code ai-102-lab
