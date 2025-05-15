@@ -29,20 +29,40 @@ $group
 
 #!pwsh
 
-$num = "ai" + (Get-Random -Minimum 10000000 -Maximum 99999999)
-$num
+$suffix = "lab" + (Get-Random -Minimum 10000000 -Maximum 99999999)
+$suffix
 
 #!pwsh
 
-$oainame = "oai" + $num
-$storagename = "stor" + $num
-$aisearchname = "aisearch" + $num
+$oainame = "oai" + $suffix
+$storagename = "stor" + $suffix
+$aisearchname = "aisearch" + $suffix
 $location = "eastus"
 
 #!pwsh
 
+az search service create -n $aisearchname -g $group -l $location `
+    --sku free --identity-type SystemAssigned
+
+#!pwsh
+
+$aiseardhresourceid = (az search service show -n $aisearchname -g $group --query 'id' -otsv)
+
+#!pwsh
+
+az identity show --ids $aiseardhresourceid
+
+#!pwsh
+
+az role assignment create `
+    --assignee-object-id $aiseardhid `
+    --role "Cognitive Services OpeiAI User" `
+    --scope $aiseardhid
+
+#!pwsh
+
 az cognitiveservices account create `
-  -n $oainame -g $group -l $location --kind "OpenAI" --sku "S0"
+  -n $oainame -g $group -l $location --kind "OpenAI" --sku "S0" --custom-domain $oainame
 
 #!pwsh
 
@@ -58,12 +78,20 @@ az cognitiveservices account deployment create `
 
 #!pwsh
 
-az storage account create -n $storagename -g $group -l $location `
-  --sku Standard_LRS --kind StorageV2
+az cognitiveservices account deployment create `
+    -g $group `
+    -n $oainame `
+    --deployment-name text-embedding-ada-002 `
+    --model-name text-embedding-ada-002 `
+    --model-version 2 `
+    --model-format OpenAI `
+    --sku-name "Standard" `
+    --sku-capacity 5
 
 #!pwsh
 
-az storage account create -n $storagename -g $group -l $location `  --sku Standard_LRS --kind StorageV2
+az storage account create -n $storagename -g $group -l $location `
+  --sku Standard_LRS --kind StorageV2
 
 #!pwsh
 
@@ -76,9 +104,5 @@ az storage container create --name brochures --account-name $storagename --auth-
 
 #!pwsh
 
-az storage blob sync --account-name $storagename --account-key $stkey `
-  --source brochures --container brochures
-
-#!pwsh
-
-az search service create -n $aisearchname -g $group -l $location --sku free
+az storage blob upload-batch --account-name $storagename --account-key $stkey `
+  --source brochures --destination brochures
