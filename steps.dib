@@ -12,27 +12,41 @@ Write-Host "hello from PowerShell"
 
 #!pwsh
 
-#!set --name username --value @input:"Azure portal用のユーザー名を入力してください"
+# Visual Studio Code の上部にテキストボックスが表示されます。
+# ラボ手順書の「リソース」タブの上部に表示されているユーザー名をクリックしてユーザー名を入力し、エンターを押してください。
+
+#!set --name username --value @input:"Azure portal用のユーザー名"
 
 #!pwsh
 
-#!set --name password --value @input:"Azure portal用のパスワードを入力してください"
+# Visual Studio Code の上部にテキストボックスが表示されます。
+# ラボ手順書の「リソース」タブの上部に表示されているパスワードをクリックしてパスワードを入力し、エンターを押してください。
+
+#!set --name password --value @input:"Azure portal用のパスワード"
 
 #!pwsh
+
+# Azure CLI でログイン
 
 az login -u "$username" -p "$password"
 
 #!pwsh
+
+# あらかじめ作成済みのリソースグループを取得
 
 $group = az group list --query "[].name" -o tsv
 $group
 
 #!pwsh
 
+# ランダムな数値を作成
+
 $suffix = "lab" + (Get-Random -Minimum 10000000 -Maximum 99999999)
 $suffix
 
 #!pwsh
+
+# リソース名とリージョンを決定
 
 $oainame = "oai" + $suffix
 $storagename = "stor" + $suffix
@@ -51,14 +65,22 @@ $mid = (az search service show -n $aisearchname -g $group --query identity.princ
 
 #!pwsh
 
+# Azure OpenAI リソースを作成
+
 az cognitiveservices account create `
   -n $oainame -g $group -l $location --kind "OpenAI" --sku "S0" --custom-domain $oainame
 
 #!pwsh
 
+# Azure OpenAI リソースの ID を取得
+
 $rid = (az cognitiveservices account show -n $oainame -g $group --query id -otsv)
 
 #!pwsh
+
+# Azure OpenAI リソースにおいて、
+# Azure AI Search のマネージドIDに
+# 「Cognitive Services OpenAI User」ロールを割り当て
 
 az role assignment create `
     --assignee-object-id $mid `
@@ -67,6 +89,8 @@ az role assignment create `
     --scope $rid
 
 #!pwsh
+
+# GPT-4o モデルをデプロイ
 
 az cognitiveservices account deployment create `
     -g $group `
@@ -80,6 +104,8 @@ az cognitiveservices account deployment create `
 
 #!pwsh
 
+# text-embedding-ada-002 モデルをデプロイ
+
 az cognitiveservices account deployment create `
     -g $group `
     -n $oainame `
@@ -92,14 +118,22 @@ az cognitiveservices account deployment create `
 
 #!pwsh
 
+# ストレージアカウントを作成
+
 az storage account create -n $storagename -g $group -l $location `
   --sku Standard_LRS --kind StorageV2
 
 #!pwsh
 
+# ストレージアカウントの ID を取得
+
 $rid = (az storage account show -n $storagename -g $group --query id -otsv)
 
 #!pwsh
+
+# ストレージアカウントにおいて、
+# Azure AI Search のマネージドIDに
+# 「Storage Blob Data Contributor」ロールを割り当て
 
 az role assignment create `
     --assignee-object-id $mid `
@@ -109,19 +143,27 @@ az role assignment create `
 
 #!pwsh
 
+# ストレージアカウントのキーを取得
+
 $stkey = (az storage account keys list --account-name $storagename -g $group `
     --query "[?keyName=='key1'].value | [0]" -o tsv)
 
 #!pwsh
 
+# Blobコンテナーを作成
+
 az storage container create --name brochures --account-name $storagename --auth-mode key --account-key $stkey
 
 #!pwsh
+
+# BlobコンテナーにPDFをアップロード
 
 az storage blob upload-batch --account-name $storagename --account-key $stkey `
   --source brochures --destination brochures
 
 #!html
+
+<h1>インデックスの作成</h1>
 
 <p>ここで、Edge Webブラウザーを開き、Azure portal（ https://portal.azure.com/ ）に移動し、Azure AI Search で「データのインポートとベクター化」を実行します。手順は以下を参照してください。</p>
 <p>
@@ -132,30 +174,42 @@ az storage blob upload-batch --account-name $storagename --account-key $stkey `
 
 #!pwsh
 
+# Azure AI Search のエンドポイントを環境変数にセット
+
 $env:SEARCH_ENDPOINT = "https://$aisearchname.search.windows.net"
 $env:SEARCH_ENDPOINT
 
 #!pwsh
+
+# Azure AI Search のキーを環境変数にセット
 
 $env:SEARCH_KEY = (az search admin-key show --service-name $aisearchname -g $group --query "primaryKey" -o tsv)
 $env:SEARCH_KEY
 
 #!pwsh
 
+# Azure AI Search のインデックス名を環境変数にセット
+
 $env:SEARCH_INDEX = "margies-index"
 $env:SEARCH_INDEX
 
 #!pwsh
+
+# Azure OpenAI のエンドポイントを環境変数にセット
 
 $env:OPENAI_ENDPOINT = "https://$oainame.openai.azure.com/"
 $env:OPENAI_ENDPOINT
 
 #!pwsh
 
+# Azure OpenAI のキーを環境変数にセット
+
 $env:OPENAI_KEY = (az cognitiveservices account keys list --name $oainame -g $group --query "key1" -o tsv)
 $env:OPENAI_KEY
 
 #!pwsh
+
+# Azure OpenAI デプロイ名を環境変数にセット
 
 $env:OPENAI_DEPLOY_NAME = "gpt-4o"
 $env:OPENAI_DEPLOY_NAME
@@ -163,7 +217,23 @@ $env:OPENAI_DEPLOY_NAME
 #!pwsh
 
 # 以上でセットアップは完了です。プログラムを実行します。
+
 # ここではユーザーがNew Yorkの宿泊先をアシスタントに問い合わせます。
+# 
+# ここではまだ on your data を使いません。
+# アシスタントは自分が持っている知識に基づいて回答を生成します
+
+dotnet run
+
+#!pwsh
+
+# つぎに on your data を使います。
 # アシスタントは接続されたPDFファイルを検索し、ユーザーの質問に答えます。
 # たとえば「マンハッタンホテル, グランドセントラルホテル, パークホテル」のような回答が得られます。
-dotnet run
+# これらはPDFに記載されているホテル名です。
+
+dotnet run onyourdata
+
+#!pwsh
+
+# 以上です
