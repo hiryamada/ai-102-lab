@@ -41,8 +41,9 @@ $location = "eastus"
 
 #!pwsh
 
+# Azure AI SearchのBasic価格レベルを作成。5～6分かかる。
 az search service create -n $aisearchname -g $group -l $location `
-    --sku free --identity-type SystemAssigned
+    --sku basic --identity-type SystemAssigned
 
 #!pwsh
 
@@ -72,10 +73,10 @@ az cognitiveservices account deployment create `
     -n $oainame `
     --deployment-name gpt-4o `
     --model-name gpt-4o `
-    --model-version 2024-05-13 `
+    --model-version 2024-11-20 `
     --model-format OpenAI `
     --sku-name "Standard" `
-    --sku-capacity 5
+    --sku-capacity 50
 
 #!pwsh
 
@@ -87,7 +88,7 @@ az cognitiveservices account deployment create `
     --model-version 2 `
     --model-format OpenAI `
     --sku-name "Standard" `
-    --sku-capacity 5
+    --sku-capacity 50
 
 #!pwsh
 
@@ -122,11 +123,12 @@ az storage blob upload-batch --account-name $storagename --account-key $stkey `
 
 #!html
 
-<p>ここで、Edge Webブラウザーを開き、Azure portalに移動し、Azure AI Search でベクトルインデックスを作成します。手順は以下を参照してください。</p>
-<p>インデックス名は `margies-index` としてください。</p>
+<p>ここで、Edge Webブラウザーを開き、Azure portal（ https://portal.azure.com/ ）に移動し、Azure AI Search で「データのインポートとベクター化」を実行します。手順は以下を参照してください。</p>
 <p>
 <a href="https://microsoftlearning.github.io/mslearn-openai.ja-jp/Instructions/Exercises/02-use-own-data.html#%E3%82%A4%E3%83%B3%E3%83%87%E3%83%83%E3%82%AF%E3%82%B9%E3%82%92%E4%BD%9C%E6%88%90%E3%81%99%E3%82%8B">インデックスを作成する</a>
 </p>
+<p>「データのインポートとベクター化」の最後のページで、「オブジェクト名のプレフィックス」 は「margies-index」 と入力してください。</p>
+<p> 「作成に成功しました」と表示されたら、このファイルに戻ってきて続きを実行してください。</p>
 
 #!pwsh
 
@@ -161,5 +163,7 @@ $env:OPENAI_DEPLOY_NAME
 #!pwsh
 
 # 以上でセットアップは完了です。プログラムを実行します。
-
+# ここではユーザーがNew Yorkの宿泊先をアシスタントに問い合わせます。
+# アシスタントは接続されたPDFファイルを検索し、ユーザーの質問に答えます。
+# たとえば「マンハッタンホテル, グランドセントラルホテル, パークホテル」のような回答が得られます。
 dotnet run

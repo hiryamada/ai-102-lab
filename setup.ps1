@@ -10,13 +10,13 @@ Write-Host "install .NET SDK 9 ..."
 winget install -e -h --accept-package-agreements --accept-source-agreements --no-upgrade --id Microsoft.DotNet.SDK.9
 Write-Host "install .NET SDK 9 ... done"
 
-Write-Host "install dotnet-interactive ..."
-dotnet tool install -g Microsoft.dotnet-interactive
-Write-Host "install dotnet-interactive ...done"
-
 Write-Host "add nuget source ..."
 dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org
 Write-Host "add nuget source ... done"
+
+Write-Host "install dotnet-interactive ..."
+dotnet tool install -g Microsoft.dotnet-interactive
+Write-Host "install dotnet-interactive ...done"
 
 # create user.ps1
 Write-Output @'

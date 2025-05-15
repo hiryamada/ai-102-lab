@@ -1,16 +1,13 @@
 ﻿#pragma warning disable AOAI001
 
-using System;
 using System.ClientModel;
-using System.Text.Json;
-using Azure;
 
 // Add Azure OpenAI package
 using Azure.AI.OpenAI;
 using Azure.AI.OpenAI.Chat;
 using OpenAI.Chat;
 
-var searchEndpoint = Environment.GetEnvironmentVariable("SEARCH_ENDPOINIT") ?? "";
+var searchEndpoint = Environment.GetEnvironmentVariable("SEARCH_ENDPOINT") ?? "";
 var searchKey = Environment.GetEnvironmentVariable("SEARCH_KEY") ?? "";
 var searchIndex = Environment.GetEnvironmentVariable("SEARCH_INDEX") ?? "";
 
@@ -28,33 +25,39 @@ ChatCompletionOptions chatCompletionsOptions = new ChatCompletionOptions()
     Temperature = 0.9f,
 };
 
-chatCompletionsOptions.AddDataSource(new AzureSearchChatDataSource()
+if (args.Length > 0 && args[0] == "onyourdata")
 {
-    Endpoint = new Uri(searchEndpoint),
-    Authentication = DataSourceAuthentication.FromApiKey(searchKey),
-    IndexName = searchIndex,
-});
+    chatCompletionsOptions.AddDataSource(new AzureSearchChatDataSource()
+    {
+        Endpoint = new Uri(searchEndpoint),
+        Authentication = DataSourceAuthentication.FromApiKey(searchKey),
+        IndexName = searchIndex,
+    });
+}
+
+string userMessage = "What's the best hotels in New York? Please answer in Japanese and just the names of the hotels.";
+Console.WriteLine($"User: {userMessage}");
 
 ChatCompletion completion = chatClient.CompleteChat(
     [
-        new SystemChatMessage("You are an AI assistant that helps with travel-related inquiries, offering tips, advice, and recommendations as a knowledgeable travel agent."),
-        new UserChatMessage("what is the best hotel in New York?"),
+        new SystemChatMessage("You are a helpful trip advisor."),
+        new UserChatMessage(userMessage),
     ],
     chatCompletionsOptions);
 
 ChatMessageContext onYourDataContext = completion.GetMessageContext();
 
-if (onYourDataContext?.Intent is not null)
-{
-    Console.WriteLine($"Intent: {onYourDataContext.Intent}");
-}
+// if (onYourDataContext?.Intent is not null)
+// {
+//     Console.WriteLine($"Intent: {onYourDataContext.Intent}");
+// }
 
 // Print response
 Console.WriteLine($"{completion.Role}: {completion.Content[0].Text}");
 
-Console.WriteLine($"\n  Citations of data used:");
+// Console.WriteLine($"\n  引用元データ:");
 
-foreach (ChatCitation citation in onYourDataContext?.Citations ?? [])
-{
-    Console.WriteLine($"Citation: {citation.Content}");
-}
+// foreach (ChatCitation citation in onYourDataContext?.Citations ?? [])
+// {
+//     Console.WriteLine($"Citation: {citation.Content}");
+// }
