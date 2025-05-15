@@ -12,8 +12,11 @@ Write-Host "install .NET SDK 9 ... done"
 
 # create user.ps1
 Write-Output @'
-code --install-extension ms-dotnettools.csharp --force
-code --install-extension ms-dotnettools.csdevkit --force
+#code --install-extension ms-dotnettools.csharp --force
+#code --install-extension ms-dotnettools.csdevkit --force
+
+dotnet tool install -g Microsoft.dotnet-interactive
+
 code --install-extension ms-dotnettools.dotnet-interactive-vscode --force
 
 Set-Location $HOME\Desktop
