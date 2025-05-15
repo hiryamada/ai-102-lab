@@ -46,23 +46,24 @@ az search service create -n $aisearchname -g $group -l $location `
 
 #!pwsh
 
-$aiseardhresourceid = (az search service show -n $aisearchname -g $group --query 'id' -otsv)
-
-#!pwsh
-
-az identity show --ids $aiseardhresourceid
-
-#!pwsh
-
-az role assignment create `
-    --assignee-object-id $aiseardhid `
-    --role "Cognitive Services OpeiAI User" `
-    --scope $aiseardhid
+$mid = (az search service show -n $aisearchname -g $group --query identity.principalId -otsv)
 
 #!pwsh
 
 az cognitiveservices account create `
   -n $oainame -g $group -l $location --kind "OpenAI" --sku "S0" --custom-domain $oainame
+
+#!pwsh
+
+$rid = (az cognitiveservices account show -n $oainame -g $group --query id -otsv)
+
+#!pwsh
+
+az role assignment create `
+    --assignee-object-id $mid `
+    --assignee-principal-type ServicePrincipal `
+    --role "Cognitive Services OpenAI User" `
+    --scope $rid
 
 #!pwsh
 
@@ -95,6 +96,18 @@ az storage account create -n $storagename -g $group -l $location `
 
 #!pwsh
 
+$rid = (az storage account show -n $storagename -g $group --query id -otsv)
+
+#!pwsh
+
+az role assignment create `
+    --assignee-object-id $mid `
+    --assignee-principal-type ServicePrincipal `
+    --role "Storage Blob Data Contributor" `
+    --scope $rid
+
+#!pwsh
+
 $stkey = (az storage account keys list --account-name $storagename -g $group `
     --query "[?keyName=='key1'].value | [0]" -o tsv)
 
@@ -106,3 +119,47 @@ az storage container create --name brochures --account-name $storagename --auth-
 
 az storage blob upload-batch --account-name $storagename --account-key $stkey `
   --source brochures --destination brochures
+
+#!html
+
+<p>ここで、Edge Webブラウザーを開き、Azure portalに移動し、Azure AI Search でベクトルインデックスを作成します。手順は以下を参照してください。</p>
+<p>インデックス名は `margies-index` としてください。</p>
+<p>
+<a href="https://microsoftlearning.github.io/mslearn-openai.ja-jp/Instructions/Exercises/02-use-own-data.html#%E3%82%A4%E3%83%B3%E3%83%87%E3%83%83%E3%82%AF%E3%82%B9%E3%82%92%E4%BD%9C%E6%88%90%E3%81%99%E3%82%8B">インデックスを作成する</a>
+</p>
+
+#!pwsh
+
+$env:SEARCH_ENDPOINT = "https://$aisearchname.search.windows.net"
+$env:SEARCH_ENDPOINT
+
+#!pwsh
+
+$env:SEARCH_KEY = (az search admin-key show --service-name $aisearchname -g $group --query "primaryKey" -o tsv)
+$env:SEARCH_KEY
+
+#!pwsh
+
+$env:SEARCH_INDEX = "margies-index"
+$env:SEARCH_INDEX
+
+#!pwsh
+
+$env:OPENAI_ENDPOINT = "https://$oainame.openai.azure.com/"
+$env:OPENAI_ENDPOINT
+
+#!pwsh
+
+$env:OPENAI_KEY = (az cognitiveservices account keys list --name $oainame -g $group --query "key1" -o tsv)
+$env:OPENAI_KEY
+
+#!pwsh
+
+$env:OPENAI_DEPLOY_NAME = "gpt-4o"
+$env:OPENAI_DEPLOY_NAME
+
+#!pwsh
+
+# 以上でセットアップは完了です。プログラムを実行します。
+
+dotnet run

@@ -14,17 +14,20 @@ Write-Host "install dotnet-interactive ..."
 dotnet tool install -g Microsoft.dotnet-interactive
 Write-Host "install dotnet-interactive ...done"
 
+Write-Host "add nuget source ..."
+dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org
+Write-Host "add nuget source ... done"
+
 # create user.ps1
 Write-Output @'
-#code --install-extension ms-dotnettools.csharp --force
-#code --install-extension ms-dotnettools.csdevkit --force
-
+code --install-extension ms-dotnettools.csharp --force
+code --install-extension ms-dotnettools.csdevkit --force
 code --install-extension ms-dotnettools.dotnet-interactive-vscode --force
 
 Set-Location $HOME\Desktop
 git clone https://github.com/hiryamada/ai-102-lab
 Set-Location ai-102-lab
-code . -g steps.dib
+code . -g start.md
 '@ | Out-File -FilePath $env:USERPROFILE\user.ps1 -Encoding UTF8 -Force
 
 Write-Host "Run user.ps1 as normal user ..."
