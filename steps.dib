@@ -10,17 +10,21 @@ Console.WriteLine("hello from C#");
 
 Write-Host "hello from PowerShell"
 
-#!pwsh
+#!markdown
 
-# Visual Studio Code の上部にテキストボックスが表示されます。
-# ラボ手順書の「リソース」タブの上部に表示されているユーザー名をクリックしてユーザー名を入力し、エンターを押してください。
+Visual Studio Code の上部にテキストボックスが表示されます。
+ラボ手順書の「リソース」タブの上部に表示されているユーザー名をクリックしてユーザー名を入力し、エンターを押してください。
+
+#!pwsh
 
 #!set --name username --value @input:"Azure portal用のユーザー名"
 
-#!pwsh
+#!markdown
 
-# Visual Studio Code の上部にテキストボックスが表示されます。
-# ラボ手順書の「リソース」タブの上部に表示されているパスワードをクリックしてパスワードを入力し、エンターを押してください。
+Visual Studio Code の上部にテキストボックスが表示されます。
+ラボ手順書の「リソース」タブの上部に表示されているパスワードをクリックしてパスワードを入力し、エンターを押してください。
+
+#!pwsh
 
 #!set --name password --value @input:"Azure portal用のパスワード"
 
@@ -41,7 +45,7 @@ $group
 
 # ランダムな数値を作成
 
-$suffix = "lab" + (Get-Random -Minimum 10000000 -Maximum 99999999)
+$suffix = Get-Random -Minimum 10000000 -Maximum 99999999
 $suffix
 
 #!pwsh

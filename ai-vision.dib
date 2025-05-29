@@ -1,0 +1,88 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp"},{"name":"fsharp","languageName":"F#","aliases":["f#","fs"]},{"name":"html","languageName":"HTML"},{"name":"http","languageName":"HTTP"},{"name":"javascript","languageName":"JavaScript","aliases":["js"]},{"name":"mermaid","languageName":"Mermaid"},{"name":"pwsh","languageName":"PowerShell","aliases":["powershell"]},{"name":"value"}]}}
+
+#!pwsh
+
+#!set --name username --value @input:"Azure portal用のユーザー名"
+
+#!markdown
+
+Visual Studio Code の上部にテキストボックスが表示されます。
+ラボ手順書の「リソース」タブの上部に表示されているパスワードをクリックしてパスワードを入力し、エンターを押してください。
+
+#!pwsh
+
+#!set --name password --value @input:"Azure portal用のパスワード"
+
+#!pwsh
+
+# Azure CLI でログイン
+
+az login -u "$username" -p "$password"
+
+#!pwsh
+
+# あらかじめ作成済みのリソースグループを取得
+
+$group = az group list --query "[].name" -o tsv
+$group
+
+#!pwsh
+
+$deploy = az deployment group create -g $group -f main.bicep | ConvertFrom-Json
+
+#!pwsh
+
+$aiservice = $deploy.properties.outputs.aiservice_name.value
+$aiservice
+
+#!pwsh
+
+# Azure OpenAI のキーを環境変数にセット
+
+$env:VISION_KEY = (az cognitiveservices account keys list --name $aiservice -g $group --query "key1" -o tsv)
+$env:VISION_KEY
+
+#!pwsh
+
+$env:VISION_ENDPOINT = $deploy.properties.outputs.aiservice_endpoint.value
+$env:VISION_ENDPOINT
+
+#!csharp
+
+#r "nuget: Azure.Core, 1.46.1"
+#r "nuget: Azure.AI.Vision.ImageAnalysis, 1.0.0"
+
+#!csharp
+
+using Azure.AI.Vision.ImageAnalysis;
+using Azure;
+using System.IO;
+
+#!csharp
+
+string endpoint = Environment.GetEnvironmentVariable("VISION_ENDPOINT");
+string key = Environment.GetEnvironmentVariable("VISION_KEY");
+
+#!csharp
+
+#pragma warning disable CS1701,CS1702
+
+ImageAnalysisClient client = new (new Uri(endpoint), new AzureKeyCredential(key));
+
+#!csharp
+
+using (FileStream stream = new FileStream("street.jpg", FileMode.Open))
+{
+    // Get a caption for the image.
+    ImageAnalysisResult result = await client.AnalyzeAsync(
+        BinaryData.FromStream(stream),
+        VisualFeatures.Caption,
+        new ImageAnalysisOptions { GenderNeutralCaption = false });
+
+    // Print caption results to the console
+    Console.WriteLine($"Image analysis results:");
+    Console.WriteLine($" Caption:");
+    Console.WriteLine($"   '{result.Caption.Text}', Confidence {result.Caption.Confidence:F4}");
+}
